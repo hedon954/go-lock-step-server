@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "./pb";
+
+// message ID
+enum ID {
+  MSG_BEGIN = 0;
+
+  MSG_Connect   = 1;      // connect(the first message sent by client)
+  MSG_Heartbeat = 2;    // heartbeat (send a heartbeat packet every 1 second after the server returns Connect successfully)
+
+  MSG_JoinRoom  = 10;
+  MSG_Progress  = 20;
+  MSG_Ready     = 30;
+  MSG_Start     = 40;
+  MSG_Frame     = 50;       // frame data
+  MSG_Input     = 60;
+  MSG_Result    = 70;
+
+  MSG_Close     = 100;      // close romm
+
+  MSG_END       = 255;
+}
+
+// error code
+enum ERRORCODE {
+  ERR_ok        = 0;
+  ERR_NoPlayer  = 1;   // player not exists
+  ERR_NoRoom    = 2;     // room not exists
+  ERR_RoomState = 3;  // room state error
+  ERR_Token     = 4;      // token invalied
+}
+
+// the first message sent by client
+message C2S_ConnectMsg {
+  optional uint64  playerID   = 1;
+  optional uint64  batteleID  = 2;
+  optional string  token      = 3;
+}
+
+// the server returns the connection result
+message S2C_ConnectMsg {
+  optional ERRORCODE errorCode = 1;
+}
+
+// the server returns the join room result
+message S2C_JoinRoomMsg {
+  optional int32 roomseatid   = 1;    // own index id (1~N)
+  repeated uint64 others      = 2;    // others' id
+  repeated int32  pros        = 3;    // others' progress
+  optional int32  randomSeed  = 4;    // random seed
+}
+
+// the server broadcasts a start game message
+message S2C_StartMsg {
+  optional int64 timeStamp = 1; // synchronization time stamp
+}
+
+
+// bar reading Progress
+message C2S_ProgressMsg {
+  optional int32 pro = 1;  // 0~100
+}
+
+// bar reading Progress
+message S2C_ProgressMsg {
+  optional uint64 id = 1;   // progress id
+  optional int32 pro = 2;   // 0~100
+}
+
+// operate input message
+message C2S_InputMsg {
+  optional int32 sid      = 1;      // operate id
+  optional int32 x        = 2;      // operate x location
+  optional int32 y        = 3;      // operate y location
+  optional uint32 frameID = 4;      // frame id
+}
+
+// frame storage input
+message InputData {
+  optional uint64 id          = 1;      // data id
+  optional int32  sid         = 2;      // operate id
+  optional int32  x           = 3;      // operate x location
+  optional int32  y           = 4;      // operate y location
+  optional int32  roomseatid  = 5;      // the operator seat index(1~N)
+}
+
+// frame data
+message FrameData {
+  optional uint32  frameID  = 1;
+  repeated InputData input  = 2;
+}
+
+// broadcast frame message
+message S2C_FrameMsg {
+  repeated FrameData frames = 1;
+}
+
+// result message
+message C2S_ResultMsg {
+  optional uint64 winnerID  = 1;
+}
