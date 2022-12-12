@@ -62,7 +62,7 @@ func (p *Player) SendMessage(msg network.Packet) {
 	}
 }
 
-func (p *Player) Clearup() {
+func (p *Player) Cleanup() {
 	if p.client != nil {
 		p.client.Close()
 	}
