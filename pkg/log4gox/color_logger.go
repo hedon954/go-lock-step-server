@@ -1,4 +1,4 @@
-package util
+package log4gox
 
 import (
 	"fmt"
@@ -35,6 +35,10 @@ const (
 // ConsoleLogWriter is a standard writer that prints to standard output
 type ConsoleLogWriter chan *log4go.LogRecord
 
+func (w ConsoleLogWriter) Close() {
+	close(w)
+}
+
 // NewColorConsoleLogWriter creates a new ConsoleLogWriter
 func NewColorConsoleLogWriter() ConsoleLogWriter {
 	records := make(ConsoleLogWriter, log4go.LogBufferLength)
@@ -42,11 +46,11 @@ func NewColorConsoleLogWriter() ConsoleLogWriter {
 	return records
 }
 
-func (w *ConsoleLogWriter) run(out io.Writer) {
+func (w ConsoleLogWriter) run(out io.Writer) {
 	var timestr string
 	var timestrAt int64
 
-	for rec := range *w {
+	for rec := range w {
 		if at := rec.Created.UnixNano() / 1e9; at != timestrAt {
 			timestr, timestrAt = rec.Created.Format("01/02/06 15:04:05"), at
 		}
@@ -59,4 +63,10 @@ func (w *ConsoleLogWriter) run(out io.Writer) {
 			rec.Message,
 			colorSymbol)
 	}
+}
+
+// This is the ConsoleLogWriter's output method.  This will block if the output
+// buffer is full.
+func (w ConsoleLogWriter) LogWrite(rec *log4go.LogRecord) {
+	w <- rec
 }

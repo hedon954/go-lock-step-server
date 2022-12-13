@@ -36,32 +36,32 @@ func (r *LockStepServer) OnMessage(conn *network.Conn, p network.Packet) bool {
 			return false
 		}
 		playerID := rec.GetPlayerID()
-		batteleID := rec.GetBatteleID()
+		battleID := rec.GetBattleID()
 		token := rec.GetToken()
 
 		ret := &pb.S2C_ConnectMsg{
 			ErrorCode: pb.ERRORCODE_ERR_ok.Enum(),
 		}
 
-		room := r.roomMgr.GetRoom(batteleID)
+		room := r.roomMgr.GetRoom(battleID)
 		if room == nil {
 			ret.ErrorCode = pb.ERRORCODE_ERR_NoRoom.Enum()
 			conn.AsyncWritePacket(pb_packet.NewPacket(uint8(pb.ID_MSG_Connect), ret), time.Millisecond)
-			log4go.Error("[router] no room player=[%d] room=[%d] token=[%s]", playerID, batteleID, token)
+			log4go.Error("[router] no room player=[%d] room=[%d] token=[%s]", playerID, battleID, token)
 			return true
 		}
 
 		if room.IsOver() {
 			ret.ErrorCode = pb.ERRORCODE_ERR_RoomState.Enum()
 			conn.AsyncWritePacket(pb_packet.NewPacket(uint8(pb.ID_MSG_Connect), ret), time.Millisecond)
-			log4go.Error("[router] room is over player=[%d] room==[%d] token=[%s]", playerID, batteleID, token)
+			log4go.Error("[router] room is over player=[%d] room==[%d] token=[%s]", playerID, battleID, token)
 			return true
 		}
 
 		if !room.HasPlayer(playerID) {
 			ret.ErrorCode = pb.ERRORCODE_ERR_NoPlayer.Enum()
 			conn.AsyncWritePacket(pb_packet.NewPacket(uint8(pb.ID_MSG_Connect), ret), time.Millisecond)
-			log4go.Error("[router] !room.HasPlayer(playerID) player=[%d] room==[%d] token=[%s]", playerID, batteleID,
+			log4go.Error("[router] !room.HasPlayer(playerID) player=[%d] room==[%d] token=[%s]", playerID, battleID,
 				token)
 			return true
 		}
@@ -69,7 +69,7 @@ func (r *LockStepServer) OnMessage(conn *network.Conn, p network.Packet) bool {
 		if token != verifyToken(token) {
 			ret.ErrorCode = pb.ERRORCODE_ERR_Token.Enum()
 			conn.AsyncWritePacket(pb_packet.NewPacket(uint8(pb.ID_MSG_Connect), ret), time.Millisecond)
-			log4go.Error("[router] verifyToken failed player=[%d] room==[%d] token=[%s]", playerID, batteleID, token)
+			log4go.Error("[router] verifyToken failed player=[%d] room==[%d] token=[%s]", playerID, battleID, token)
 			return true
 		}
 

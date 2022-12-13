@@ -1,4 +1,4 @@
-package util
+package ipx
 
 import (
 	"errors"
